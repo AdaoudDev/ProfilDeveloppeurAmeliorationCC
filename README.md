@@ -1,50 +1,54 @@
-# Profil Ahmad Daoud, Développeur JetpackCompose
-Un projet permettant d'afficher mes compétences en tant que dévéloppeur Compose, et d'offrir un moyen de contact, pour le cours ESGI Jetpack Android Compose
+# Profil Développeur – Amélioration UI (Jetpack Compose)
 
-L'appli affiche une fiche profil sur un seul écran : nom, rôle, une courte description, la liste des compétences et la disponibilité.
-En bas il y a une zone cliquable pour la dispo et un bouton "Contacter".
-Les clics ne font rien pour l'instant, ils remontent juste jusqu'à MainActivity via des callbacks.
-Il y a 2 previews avec 2 profils différents (un junior Android dispo et une full-stack pas dispo).
+Deuxième version de mon appli « Profil développeur » pour le cours Jetpack Compose à l'ESGI.
+L'appli affiche mon profil sur un seul écran : avatar avec un badge « Dispo », nom, rôle, une courte description, mes compétences, mes projets, une carte contact et un bouton « Contacter ».
+Toutes les données sont écrites en dur dans le code Kotlin, il n'y a pas d'API. Le bouton appelle juste un callback vide.
 
-## Notions utilisées
-- composables
-- paramètres
-- modifiers et chaînage de modifiers
-- padding externe / interne
-- callbacks
-- Scaffold et innerPadding
-- previews
-- accessibilité de base (semantics, Role.Button, contentDescription)
+## Captures d'écran
 
-## Quels composables ai-je créé?
-- `ProfileScreen` : l'écran
-- `ProfileCard` : la fiche
-- `ProfileHeader` : nom + rôle
-- `SkillItem` : une compétence
-- `AvailabilityInfo` : la zone cliquable de dispo
-- `ContactButton` : le bouton contacter
+| Clair | Sombre |
+|-------|--------|
+| ![Clair haut](screenshots/clair-haut.png) | ![Sombre haut](screenshots/sombre-haut.png) |
+| ![Clair bas](screenshots/clair-bas.png) | ![Sombre bas](screenshots/sombre-bas.png) |
 
-## Quel composable représente l'écran principal?
-`ProfileScreen`, c'est lui qui a le `Scaffold` et qui place la fiche avec le `innerPadding`.
+## Composants Compose utilisés
+- `Text` : nom, rôle, description, titres des sections, infos des projets
+- `Button` : le bouton « Contacter »
+- `Icon` : icône des projets et des lignes de contact (email, localisation, dispo)
+- `Image` : l'avatar (un drawable placeholder)
+- `Card` : les cartes projets et la carte contact
+- `OutlinedTextField` en `readOnly = true` : email, localisation et disponibilité
+- `Scaffold` : la base de l'écran
 
-## Ou sont utiliser les paddings externes et internes
-- Externe : dans `ProfileScreen`, la fiche reçoit `Modifier.padding(innerPadding).padding(16.dp)`. C'est l'écran (le parent) qui décide où placer la fiche. Pareil dans `ProfileCard` avec les `padding(top = ...)` passés aux `SkillItem`, à `AvailabilityInfo` et au bouton pour les espacer.
-- Interne : dans `ProfileCard`, la `Column` a un `padding(16.dp)` pour pas que le texte colle au bord de la fiche. Pareil dans `SkillItem` et `AvailabilityInfo` autour du texte.
+## Layouts utilisés
+- `Column` : pour empiler les éléments (header, contenu des cartes)
+- `Row` : icône + texte dans les cartes projets et les lignes de contact
+- `Box` : l'avatar avec le badge « Dispo » posé par-dessus en bas à droite
+- `Spacer` : pour les espaces entre les éléments
+- `Surface` : le badge « Dispo » et les pastilles de compétences, avec les couleurs et les formes du thème
 
-En gros l'externe c'est le parent qui place le composant, l'interne c'est le composant qui espace son propre contenu.
+## Les listes (LazyColumn et LazyRow)
+Tout l'écran est une `LazyColumn` :
+- un `item { }` pour le header (avatar, nom, rôle, description) ;
+- un `item { }` pour les compétences, affichées dans une `LazyRow` horizontale avec un `SkillChip` par compétence ;
+- `items(projects, key = { it.id })` pour les projets, chaque projet est affiché avec une `ProjectCard` ;
+- un `item { }` pour la `ContactCard` et le bouton.
 
-## Quel composant reçoit un callback
-`ContactButton` et `AvailabilityInfo` reçoivent un `onClick`. Ils le transmettent juste, ils décident pas de ce qui se passe. Le callback remonte par `ProfileCard` et `ProfileScreen` jusqu'à `MainActivity` où il est vide avec un commentaire.
+Les projets viennent d'une `data class Project` et de la fonction `sampleProjects()`. L'`id` sert de clé pour la liste.
+Comme l'écran est déjà une `LazyColumn`, il n'y a pas de liste dans une `Column` qui scrolle.
 
-## Quelle information d'accéssibilité sont ajoutés?
-Sur `AvailabilityInfo` (zone cliquable perso) j'ai ajouté avec `semantics` :
-- `role = Role.Button` pour que le lecteur d'écran l'annonce comme un bouton
-- une `contentDescription` qui dit ce que fait le clic
+## Choix du thème
+- Palette perso avec 3 couleurs : bleu canard en `primary` (rôle, icônes, bouton), indigo en `secondary` et ambre en `tertiary` (le badge « Dispo »).
+- Une version claire et une version sombre (couleurs plus claires pour rester lisibles sur fond noir). Le thème suit le réglage du téléphone avec `isSystemInDarkTheme()`.
+- Les couleurs dynamiques (`dynamicColor`) sont désactivées pour garder ma palette.
+- `typography` : j'ai juste mis le nom en gras (`headlineSmall`), le reste utilise les styles de base de Material 3.
+- `shapes` : coins arrondis de 8 dp (`small`) pour les pastilles et le badge, 16 dp (`medium`) pour les cartes.
 
-Pour `ContactButton` j'ai rien ajouté car c'est un `Button`, il est déjà reconnu comme bouton par le lecteur d'écran, contrairement à une simple zone avec `clickable`.
+## Previews
+- « Junior Android - clair » et « Junior Android - sombre » (avec `uiMode = Configuration.UI_MODE_NIGHT_YES`)
+- « Full-stack pas dispo » : un autre profil avec d'autres compétences et projets, sans le badge
 
-## Pourquoi mes composants sont ils réutilisables?
-Ils affichent rien en dur, tout passe par des paramètres (nom, rôle, compétence, texte du bouton, callback...). Et ils prennent tous un `modifier: Modifier = Modifier` donc le parent peut les placer comme il veut. La preuve, les 2 previews utilisent les mêmes composables avec des données différentes.
-
-## Capture d'écran
-![Capture de l'appli](Ecran-avec-Preview.png)
+## Quelles notions du chapitre Compose UI avez-vous réutilisées dans cette application ?
+J'ai réutilisé les composants de base (`Text`, `Button`, `Icon`, `Image`, `Card`, `OutlinedTextField` en lecture seule), les layouts (`Column`, `Row`, `Box`, `Spacer`, `Surface`), les listes modernes avec `LazyColumn` et `LazyRow` (avec `item`, `items` et une `key`), et des composables réutilisables pour chaque élément de liste (`SkillChip`, `ProjectCard`, `ContactInfo`).
+Côté Material 3, j'utilise `MaterialTheme.colorScheme`, `typography` et `shapes` partout au lieu de valeurs en dur, avec un thème clair et un thème sombre.
+J'ai aussi gardé les bonnes pratiques du premier devoir : petits composables, `modifier` en paramètre, callbacks pour les actions, `contentDescription` sur les images et icônes, et plusieurs previews.
