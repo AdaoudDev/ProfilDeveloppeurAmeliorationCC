@@ -49,6 +49,45 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+// Un projet du portfolio
+data class Project(
+    val id: Int,
+    val title: String,
+    val description: String,
+    val tech: String
+)
+
+// Données en dur pour l'appli, pas d'API
+fun sampleProjects(): List<Project> = listOf(
+    Project(
+        id = 1,
+        title = "Product Explorer",
+        description = "Appli de catalogue produits faite pendant les TP Compose.",
+        tech = "Kotlin · Jetpack Compose"
+    ),
+    Project(
+        id = 2,
+        title = "Fiche Profil",
+        description = "Premier écran Compose avec une fiche de présentation.",
+        tech = "Kotlin · Material 3"
+    ),
+    Project(
+        id = 3,
+        title = "Site perso",
+        description = "Petit site pour présenter mes projets et mon CV.",
+        tech = "HTML · CSS · Git"
+    )
+)
+
+// Les compétences affichées dans la LazyRow
+fun sampleSkills(): List<String> = listOf(
+    "Kotlin",
+    "Jetpack Compose",
+    "Material 3",
+    "Git",
+    "Android Studio"
+)
+
 // Ecran principal de l'appli
 @Composable
 fun ProfileScreen(
