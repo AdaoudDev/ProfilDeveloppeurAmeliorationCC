@@ -4,23 +4,35 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.tpahmaddaoudjetpackcompose.ui.theme.TPAhmadDAOUDJetpackComposeTheme
@@ -35,7 +47,8 @@ class MainActivity : ComponentActivity() {
                     name = "Ahmad Daoud",
                     role = "Développeur Android junior",
                     description = "Etudiant en M1 à l'ESGI, je développe des applis Android avec Kotlin et Jetpack Compose.",
-                    skills = listOf("Kotlin", "Jetpack Compose", "Git"),
+                    skills = sampleSkills(),
+                    isAvailable = true,
                     availability = "Disponible pour une alternance",
                     onAvailabilityClick = {
                         // affichera éventuellement la dispo
@@ -95,6 +108,7 @@ fun ProfileScreen(
     role: String,
     description: String,
     skills: List<String>,
+    isAvailable: Boolean,
     availability: String,
     onAvailabilityClick: () -> Unit,
     onContactClick: () -> Unit,
@@ -106,6 +120,7 @@ fun ProfileScreen(
             role = role,
             description = description,
             skills = skills,
+            isAvailable = isAvailable,
             availability = availability,
             onAvailabilityClick = onAvailabilityClick,
             onContactClick = onContactClick,
@@ -124,6 +139,7 @@ fun ProfileCard(
     role: String,
     description: String,
     skills: List<String>,
+    isAvailable: Boolean,
     availability: String,
     onAvailabilityClick: () -> Unit,
     onContactClick: () -> Unit,
@@ -135,19 +151,23 @@ fun ProfileCard(
     ) {
         // padding interne : espace entre le bord de la fiche et le contenu
         Column(modifier = Modifier.padding(16.dp)) {
-            ProfileHeader(name = name, role = role)
-            Text(
-                text = description,
-                modifier = Modifier.padding(top = 8.dp)
+            ProfileHeader(
+                name = name,
+                role = role,
+                description = description,
+                isAvailable = isAvailable
             )
             Text(
                 text = "Compétences",
-                fontWeight = FontWeight.Bold,
+                style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.padding(top = 16.dp)
             )
-            // un SkillItem par compétence de la liste
-            skills.forEach { skill ->
-                SkillItem(skill = skill, modifier = Modifier.padding(top = 4.dp))
+            Spacer(modifier = Modifier.height(8.dp))
+            // liste horizontale, un SkillChip par compétence
+            LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                items(skills) { skill ->
+                    SkillChip(skill = skill)
+                }
             }
             AvailabilityInfo(
                 text = availability,
@@ -196,32 +216,79 @@ fun ContactButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifi
     }
 }
 
-// En-tete avec le nom et le role
+// En-tete : avatar, nom, role et description
 @Composable
-fun ProfileHeader(name: String, role: String, modifier: Modifier = Modifier) {
-    Column(modifier = modifier) {
+fun ProfileHeader(
+    name: String,
+    role: String,
+    description: String,
+    isAvailable: Boolean,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        AvatarWithBadge(isAvailable = isAvailable)
+        Spacer(modifier = Modifier.height(12.dp))
         Text(
             text = name,
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold
+            style = MaterialTheme.typography.headlineSmall
         )
         Text(
             text = role,
+            style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.primary
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = description,
+            style = MaterialTheme.typography.bodyMedium,
+            textAlign = TextAlign.Center
         )
     }
 }
 
-// Une compétence
+// Avatar rond avec le badge "Dispo" par dessus
 @Composable
-fun SkillItem(skill: String, modifier: Modifier = Modifier) {
+fun AvatarWithBadge(isAvailable: Boolean, modifier: Modifier = Modifier) {
+    Box(modifier = modifier) {
+        Image(
+            painter = painterResource(id = R.drawable.avatar),
+            contentDescription = "Photo de profil",
+            modifier = Modifier
+                .size(96.dp)
+                .clip(CircleShape)
+        )
+        // le badge s'affiche seulement si le dev est dispo
+        if (isAvailable) {
+            Surface(
+                modifier = Modifier.align(Alignment.BottomEnd),
+                shape = MaterialTheme.shapes.small,
+                color = MaterialTheme.colorScheme.tertiary
+            ) {
+                Text(
+                    text = "Dispo",
+                    style = MaterialTheme.typography.labelMedium,
+                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                )
+            }
+        }
+    }
+}
+
+// Une compétence affichée comme une petite pastille
+@Composable
+fun SkillChip(skill: String, modifier: Modifier = Modifier) {
     Surface(
         modifier = modifier,
+        shape = MaterialTheme.shapes.small,
         color = MaterialTheme.colorScheme.secondaryContainer
     ) {
         Text(
             text = skill,
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+            style = MaterialTheme.typography.labelLarge,
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
         )
     }
 }
@@ -236,6 +303,7 @@ fun ProfileJuniorPreview() {
             role = "Développeur Android junior",
             description = "Etudiant en M1 à l'ESGI, je développe des applis Android avec Kotlin et Jetpack Compose.",
             skills = listOf("Kotlin", "Jetpack Compose", "Git"),
+            isAvailable = true,
             availability = "Disponible pour une alternance",
             onAvailabilityClick = {},
             onContactClick = {}
@@ -253,6 +321,7 @@ fun ProfileFullStackPreview() {
             role = "Développeuse full-stack",
             description = "5 ans d'expérience en web et mobile, surtout sur des API et du React.",
             skills = listOf("TypeScript", "React", "Node.js", "PostgreSQL", "Docker"),
+            isAvailable = false,
             availability = "Pas disponible, en mission jusqu'en mars 2027",
             onAvailabilityClick = {},
             onContactClick = {}
