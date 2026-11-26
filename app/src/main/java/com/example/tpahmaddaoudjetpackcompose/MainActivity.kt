@@ -9,16 +9,25 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Code
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -48,6 +57,7 @@ class MainActivity : ComponentActivity() {
                     role = "Développeur Android junior",
                     description = "Etudiant en M1 à l'ESGI, je développe des applis Android avec Kotlin et Jetpack Compose.",
                     skills = sampleSkills(),
+                    projects = sampleProjects(),
                     isAvailable = true,
                     availability = "Disponible pour une alternance",
                     onAvailabilityClick = {
@@ -101,13 +111,14 @@ fun sampleSkills(): List<String> = listOf(
     "Android Studio"
 )
 
-// Ecran principal de l'appli
+// Ecran principal de l'appli, tout l'écran est une LazyColumn
 @Composable
 fun ProfileScreen(
     name: String,
     role: String,
     description: String,
     skills: List<String>,
+    projects: List<Project>,
     isAvailable: Boolean,
     availability: String,
     onAvailabilityClick: () -> Unit,
@@ -115,72 +126,93 @@ fun ProfileScreen(
     modifier: Modifier = Modifier
 ) {
     Scaffold(modifier = modifier.fillMaxSize()) { innerPadding ->
-        ProfileCard(
-            name = name,
-            role = role,
-            description = description,
-            skills = skills,
-            isAvailable = isAvailable,
-            availability = availability,
-            onAvailabilityClick = onAvailabilityClick,
-            onContactClick = onContactClick,
-            // padding externe : c'est l'ecran qui place la fiche
-            modifier = Modifier
-                .padding(innerPadding)
-                .padding(16.dp)
-        )
+        LazyColumn(
+            modifier = Modifier.padding(innerPadding),
+            contentPadding = PaddingValues(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            item {
+                ProfileHeader(
+                    name = name,
+                    role = role,
+                    description = description,
+                    isAvailable = isAvailable
+                )
+            }
+            item {
+                Text(
+                    text = "Compétences",
+                    style = MaterialTheme.typography.titleMedium
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                // liste horizontale, un SkillChip par compétence
+                LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    items(skills) { skill ->
+                        SkillChip(skill = skill)
+                    }
+                }
+            }
+            item {
+                Text(
+                    text = "Projets",
+                    style = MaterialTheme.typography.titleMedium
+                )
+            }
+            // une ProjectCard par projet, l'id sert de clé
+            items(projects, key = { it.id }) { project ->
+                ProjectCard(project = project)
+            }
+            item {
+                AvailabilityInfo(
+                    text = availability,
+                    onClick = onAvailabilityClick
+                )
+                ContactButton(
+                    text = "Contacter",
+                    onClick = onContactClick,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 16.dp)
+                )
+            }
+        }
     }
 }
 
-// Fiche du profil
+// Carte d'un projet
 @Composable
-fun ProfileCard(
-    name: String,
-    role: String,
-    description: String,
-    skills: List<String>,
-    isAvailable: Boolean,
-    availability: String,
-    onAvailabilityClick: () -> Unit,
-    onContactClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Surface(
+fun ProjectCard(project: Project, modifier: Modifier = Modifier) {
+    Card(
         modifier = modifier.fillMaxWidth(),
-        color = MaterialTheme.colorScheme.surfaceVariant
+        shape = MaterialTheme.shapes.medium,
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
-        // padding interne : espace entre le bord de la fiche et le contenu
-        Column(modifier = Modifier.padding(16.dp)) {
-            ProfileHeader(
-                name = name,
-                role = role,
-                description = description,
-                isAvailable = isAvailable
+        Row(modifier = Modifier.padding(16.dp)) {
+            Icon(
+                imageVector = Icons.Default.Code,
+                contentDescription = "Projet",
+                tint = MaterialTheme.colorScheme.primary
             )
-            Text(
-                text = "Compétences",
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(top = 16.dp)
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            // liste horizontale, un SkillChip par compétence
-            LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                items(skills) { skill ->
-                    SkillChip(skill = skill)
-                }
+            Spacer(modifier = Modifier.width(12.dp))
+            Column {
+                Text(
+                    text = project.title,
+                    style = MaterialTheme.typography.titleMedium
+                )
+                Text(
+                    text = project.description,
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = project.tech,
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.primary
+                )
             }
-            AvailabilityInfo(
-                text = availability,
-                onClick = onAvailabilityClick,
-                modifier = Modifier.padding(top = 16.dp)
-            )
-            ContactButton(
-                text = "Contacter",
-                onClick = onContactClick,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 16.dp)
-            )
         }
     }
 }
@@ -303,6 +335,7 @@ fun ProfileJuniorPreview() {
             role = "Développeur Android junior",
             description = "Etudiant en M1 à l'ESGI, je développe des applis Android avec Kotlin et Jetpack Compose.",
             skills = listOf("Kotlin", "Jetpack Compose", "Git"),
+            projects = sampleProjects(),
             isAvailable = true,
             availability = "Disponible pour une alternance",
             onAvailabilityClick = {},
@@ -321,6 +354,10 @@ fun ProfileFullStackPreview() {
             role = "Développeuse full-stack",
             description = "5 ans d'expérience en web et mobile, surtout sur des API et du React.",
             skills = listOf("TypeScript", "React", "Node.js", "PostgreSQL", "Docker"),
+            projects = listOf(
+                Project(1, "Appli de réservation", "Site de réservation pour un restaurant.", "React · Node.js"),
+                Project(2, "API de paiement", "API pour gérer les paiements d'une boutique.", "TypeScript · PostgreSQL")
+            ),
             isAvailable = false,
             availability = "Pas disponible, en mission jusqu'en mars 2027",
             onAvailabilityClick = {},
