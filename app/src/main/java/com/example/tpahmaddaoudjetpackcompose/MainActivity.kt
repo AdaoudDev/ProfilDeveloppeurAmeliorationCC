@@ -5,7 +5,6 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -24,11 +23,15 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Code
+import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Event
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -36,11 +39,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.role
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -60,9 +60,8 @@ class MainActivity : ComponentActivity() {
                     projects = sampleProjects(),
                     isAvailable = true,
                     availability = "Disponible pour une alternance",
-                    onAvailabilityClick = {
-                        // affichera éventuellement la dispo
-                    },
+                    email = "ahmad.daoud@exemple.fr",
+                    location = "Paris",
                     onContactClick = {
                         // affichera éventuellement le contact
                     }
@@ -121,7 +120,8 @@ fun ProfileScreen(
     projects: List<Project>,
     isAvailable: Boolean,
     availability: String,
-    onAvailabilityClick: () -> Unit,
+    email: String,
+    location: String,
     onContactClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -163,9 +163,10 @@ fun ProfileScreen(
                 ProjectCard(project = project)
             }
             item {
-                AvailabilityInfo(
-                    text = availability,
-                    onClick = onAvailabilityClick
+                ContactCard(
+                    email = email,
+                    location = location,
+                    availability = availability
                 )
                 ContactButton(
                     text = "Contacter",
@@ -217,22 +218,51 @@ fun ProjectCard(project: Project, modifier: Modifier = Modifier) {
     }
 }
 
-// Zone cliquable pour la disponibilité
+// Carte contact avec les infos en lecture seule
 @Composable
-fun AvailabilityInfo(text: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
-    Surface(
-        modifier = modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .semantics {
-                role = Role.Button
-                contentDescription = "$text, appuyer pour plus de détails"
-            },
-        color = MaterialTheme.colorScheme.tertiaryContainer
+fun ContactCard(
+    email: String,
+    location: String,
+    availability: String,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.medium
     ) {
-        Text(
-            text = text,
-            modifier = Modifier.padding(12.dp)
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(
+                text = "Contact",
+                style = MaterialTheme.typography.titleMedium
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            ContactInfo(icon = Icons.Default.Email, label = "Email", value = email)
+            ContactInfo(icon = Icons.Default.LocationOn, label = "Localisation", value = location)
+            ContactInfo(icon = Icons.Default.Event, label = "Disponibilité", value = availability)
+        }
+    }
+}
+
+// Une ligne de contact : icone + champ en lecture seule
+@Composable
+fun ContactInfo(icon: ImageVector, label: String, value: String, modifier: Modifier = Modifier) {
+    Row(
+        modifier = modifier.padding(vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = label,
+            tint = MaterialTheme.colorScheme.primary
+        )
+        Spacer(modifier = Modifier.width(12.dp))
+        // readOnly : on affiche juste l'info, on ne peut pas la modifier
+        OutlinedTextField(
+            value = value,
+            onValueChange = {},
+            readOnly = true,
+            label = { Text(text = label) },
+            modifier = Modifier.weight(1f)
         )
     }
 }
@@ -338,7 +368,8 @@ fun ProfileJuniorPreview() {
             projects = sampleProjects(),
             isAvailable = true,
             availability = "Disponible pour une alternance",
-            onAvailabilityClick = {},
+            email = "ahmad.daoud@exemple.fr",
+            location = "Paris",
             onContactClick = {}
         )
     }
@@ -360,7 +391,8 @@ fun ProfileFullStackPreview() {
             ),
             isAvailable = false,
             availability = "Pas disponible, en mission jusqu'en mars 2027",
-            onAvailabilityClick = {},
+            email = "sarah.martin@exemple.fr",
+            location = "Lyon",
             onContactClick = {}
         )
     }
