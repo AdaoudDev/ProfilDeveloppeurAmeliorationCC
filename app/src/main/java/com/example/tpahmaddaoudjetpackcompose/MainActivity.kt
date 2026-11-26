@@ -1,5 +1,6 @@
 package com.example.tpahmaddaoudjetpackcompose
 
+import android.content.res.Configuration
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -355,8 +356,15 @@ fun SkillChip(skill: String, modifier: Modifier = Modifier) {
     }
 }
 
-// Preview 1 : profil android junior dispo
-@Preview(showBackground = true, name = "Junior Android dispo")
+// Preview 1 : profil android junior dispo, en clair et en sombre
+// heightDp pour voir tout l'écran d'un coup
+@Preview(showBackground = true, heightDp = 1300, name = "Junior Android - clair")
+@Preview(
+    showBackground = true,
+    heightDp = 1300,
+    uiMode = Configuration.UI_MODE_NIGHT_YES,
+    name = "Junior Android - sombre"
+)
 @Composable
 fun ProfileJuniorPreview() {
     TPAhmadDAOUDJetpackComposeTheme {
